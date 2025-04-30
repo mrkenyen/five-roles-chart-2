@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>五角色資金流趨勢圖</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body style="font-family: Arial; padding: 20px">
+  <h2>📊 五角色資金流走勢圖（自動更新中）</h2>
+  <p>資料來源：Google Sheets JSON API，每 60 秒自動更新</p>
+  <div id="chart" style="width:100%;max-width:1000px;height:600px"></div>
+
+  <script>
+    const apiUrl = "https://script.google.com/macros/s/AKfycbx12k9_ol40H9_I1nOpYyz4kLX092Az6jlJfrA6z9e2geiqWlEOVddYV3GK2CmtB7IotA/exec";
+
+    function fetchDataAndPlot() {
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          const times = data.map(d => d["時間"]);
+          const inst = data.map(d => +d["機構"]);
+          const amm = data.map(d => +d["AMM"]);
+          const whale = data.map(d => +d["巨鱷"]);
+          const fund = data.map(d => +d["大戶"]);
+          const retail = data.map(d => +d["散戶"]);
+
+          const layout = {
+            title: "五角色資金流累積趨勢",
+            xaxis: { title: "時間", tickangle: -45 },
+            yaxis: { title: "資金流金額", rangemode: "tozero" },
+            legend: { orientation: "h" }
+          };
+
+          const traces = [
+            { x: times, y: inst, type: "scatter", mode: "lines+markers", name: "機構", line: { color: "teal" } },
+            { x: times, y: amm, type: "scatter", mode: "lines+markers", name: "AMM", line: { color: "fuchsia" } },
+            { x: times, y: whale, type: "scatter", mode: "lines+markers", name: "巨鱷", line: { color: "orange" } },
+            { x: times, y: fund, type: "scatter", mode: "lines+markers", name: "大戶", line: { color: "blue" } },
+            { x: times, y: retail, type: "scatter", mode: "lines+markers", name: "散戶", line: { color: "gray" } },
+          ];
+
+          Plotly.newPlot("chart", traces, layout);
+        })
+        .catch(err => {
+          document.getElementById("chart").innerHTML = "❌ 無法載入資料：" + err;
+        });
+    }
+
+    fetchDataAndPlot();
+    setInterval(fetchDataAndPlot, 60000); // 每 60 秒刷新一次
+  </script>
+</body>
+</html>
